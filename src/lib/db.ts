@@ -21,6 +21,8 @@ export type User = {
   name: string;
   password_hash: string | null;
   google_id: string | null;
+  role: "user" | "admin";
+  phone: string | null;
   created_at: string;
 };
 

@@ -10,7 +10,8 @@ import { AuthCard, AuthDivider, AuthField, AuthSubmitButton } from "@/components
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/post-login";
+  const oauthError = searchParams.get("error");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -52,6 +53,12 @@ function LoginForm() {
         </>
       }
     >
+      {oauthError === "UseCredentials" && (
+        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-500/10 dark:text-amber-400">
+          Энэ имэйл хаяг нууц үгээр бүртгэлтэй байна. Google-ээр биш, доорх имэйл/нууц үгээр нэвтэрнэ үү.
+        </p>
+      )}
+
       <GoogleButton callbackUrl={callbackUrl} />
 
       <AuthDivider />

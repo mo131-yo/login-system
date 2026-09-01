@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { UserMenu } from "@/components/user-menu";
 
 export function Navbar() {
   const { data: session, status } = useSession();
@@ -14,16 +15,7 @@ export function Navbar() {
         </Link>
         <div className="flex items-center gap-4 text-sm">
           {status === "loading" ? null : session ? (
-            <>
-              <Link href="/dashboard">Dashboard</Link>
-              <span className="text-black/60 dark:text-white/60">{session.user?.name}</span>
-              <button
-                onClick={() => signOut({ callbackUrl: "/" })}
-                className="rounded-md bg-black/5 px-3 py-1.5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20"
-              >
-                Гарах
-              </button>
-            </>
+            <UserMenu />
           ) : (
             <>
               <Link href="/login">Нэвтрэх</Link>

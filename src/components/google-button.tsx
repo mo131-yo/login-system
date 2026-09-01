@@ -6,7 +6,7 @@ export function GoogleButton({ callbackUrl }: { callbackUrl?: string }) {
   return (
     <button
       type="button"
-      onClick={() => signIn("google", { callbackUrl: callbackUrl ?? "/dashboard" })}
+      onClick={() => signIn("google", { callbackUrl: callbackUrl ?? "/post-login" })}
       className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
     >
       <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
