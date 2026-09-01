@@ -1,36 +1,19 @@
-import Database from "better-sqlite3";
-import path from "path";
-import fs from "fs";
+import postgres from "postgres";
 
-const dataDir = path.join(process.cwd(), "data");
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+  throw new Error("DATABASE_URL орчны хувьсагч тохируулаагүй байна (.env.local)");
 }
-
-const dbPath = path.join(dataDir, "app.db");
 
 declare global {
   // eslint-disable-next-line no-var
-  var __db: Database.Database | undefined;
+  var __sql: ReturnType<typeof postgres> | undefined;
 }
 
-export const db = global.__db ?? new Database(dbPath);
+export const sql = global.__sql ?? postgres(connectionString, { max: 5 });
 if (process.env.NODE_ENV !== "production") {
-  global.__db = db;
+  global.__sql = sql;
 }
-
-db.pragma("journal_mode = WAL");
-
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    email TEXT NOT NULL UNIQUE,
-    name TEXT NOT NULL,
-    password_hash TEXT,
-    google_id TEXT UNIQUE,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
-`);
 
 export type User = {
   id: number;
@@ -38,5 +21,14 @@ export type User = {
   name: string;
   password_hash: string | null;
   google_id: string | null;
+  created_at: string;
+};
+
+export type PasswordResetToken = {
+  id: number;
+  user_id: number;
+  token_hash: string;
+  expires_at: string;
+  used_at: string | null;
   created_at: string;
 };

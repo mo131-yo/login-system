@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, type User } from "@/lib/db";
-import { hashPassword, createSessionToken, setSessionCookie } from "@/lib/auth";
+import { sql } from "@/lib/db";
+import { hashPassword } from "@/lib/password";
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
@@ -15,22 +15,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Нууц үг дор хаяж 8 тэмдэгт байх ёстой" }, { status: 400 });
   }
 
-  const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(email);
+  const [existing] = await sql<{ id: number; google_id: string | null }[]>`
+    SELECT id, google_id FROM users WHERE email = ${email}
+  `;
   if (existing) {
-    return NextResponse.json({ error: "Энэ имэйл хаяг бүртгэлтэй байна" }, { status: 409 });
+    const message = existing.google_id
+      ? "Энэ имэйл Google акаунтаар бүртгэлтэй байна. Google-ээр нэвтэрнэ үү."
+      : "Энэ имэйл хаяг бүртгэлтэй байна";
+    return NextResponse.json({ error: message }, { status: 409 });
   }
 
   const passwordHash = await hashPassword(password);
-  const result = db
-    .prepare("INSERT INTO users (email, name, password_hash) VALUES (?, ?, ?)")
-    .run(email, name, passwordHash);
+  await sql`
+    INSERT INTO users (email, name, password_hash)
+    VALUES (${email}, ${name}, ${passwordHash})
+  `;
 
-  const user = db
-    .prepare("SELECT id, email, name FROM users WHERE id = ?")
-    .get(result.lastInsertRowid) as Pick<User, "id" | "email" | "name">;
-
-  const token = await createSessionToken({ userId: user.id, email: user.email, name: user.name });
-  await setSessionCookie(token);
-
-  return NextResponse.json({ user }, { status: 201 });
+  return NextResponse.json({ ok: true }, { status: 201 });
 }
