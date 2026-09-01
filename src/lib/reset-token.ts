@@ -7,7 +7,7 @@ function hashToken(token: string) {
   return crypto.createHash("sha256").update(token).digest("hex");
 }
 
-export async function createPasswordResetToken(userId: number) {
+export async function createPasswordResetToken(userId: string) {
   const rawToken = crypto.randomBytes(32).toString("hex");
   const tokenHash = hashToken(rawToken);
   const expiresAt = new Date(Date.now() + TOKEN_TTL_MS).toISOString();
@@ -21,7 +21,7 @@ export async function createPasswordResetToken(userId: number) {
   return rawToken;
 }
 
-export async function consumePasswordResetToken(rawToken: string): Promise<{ userId: number } | null> {
+export async function consumePasswordResetToken(rawToken: string): Promise<{ userId: string } | null> {
   const tokenHash = hashToken(rawToken);
   const [record] = await sql<PasswordResetToken[]>`
     SELECT * FROM password_reset_tokens WHERE token_hash = ${tokenHash}

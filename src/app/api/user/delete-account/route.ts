@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Нэвтрээгүй байна" }, { status: 401 });
   }
 
-  const [user] = await sql<User[]>`SELECT * FROM users WHERE id = ${Number(session.user.id)}`;
+  const [user] = await sql<User[]>`SELECT * FROM users WHERE id = ${session.user.id}`;
   if (!user) {
     return NextResponse.json({ error: "Хэрэглэгч олдсонгүй" }, { status: 404 });
   }

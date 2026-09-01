@@ -12,6 +12,29 @@ function getTransporter() {
   });
 }
 
+export async function sendVerificationEmail(to: string, verifyUrl: string) {
+  const transporter = getTransporter();
+  await transporter.sendMail({
+    from: `"Login System" <${process.env.GMAIL_USER}>`,
+    to,
+    subject: "Имэйл хаягаа баталгаажуулна уу",
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
+        <h2>Имэйл хаягаа баталгаажуулах</h2>
+        <p>Бүртгэлээ ашиглахын өмнө имэйл хаягаа баталгаажуулна уу. Доорх товч дээр дарна уу.</p>
+        <p style="margin: 24px 0;">
+          <a href="${verifyUrl}" style="background:#111827;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;">
+            Имэйл баталгаажуулах
+          </a>
+        </p>
+        <p style="color:#666;font-size:13px;">
+          Энэ холбоос 24 цагийн дараа хүчингүй болно. Хэрэв та бүртгүүлээгүй бол энэ имэйлийг үл тоомсорлоно уу.
+        </p>
+      </div>
+    `,
+  });
+}
+
 export async function sendPasswordResetEmail(to: string, resetUrl: string) {
   const transporter = getTransporter();
   await transporter.sendMail({

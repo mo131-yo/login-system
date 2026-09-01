@@ -6,7 +6,7 @@ import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
-  if (!checkRateLimit(`reset-password:${ip}`, 20, 15 * 60 * 1000)) {
+  if (!(await checkRateLimit(`reset-password:${ip}`, 20, 15 * 60 * 1000))) {
     return NextResponse.json(
       { error: "Хэт олон удаа оролдлоо. 15 минутын дараа дахин оролдоно уу." },
       { status: 429 }

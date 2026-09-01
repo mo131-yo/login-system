@@ -9,7 +9,7 @@ const GENERIC_MESSAGE =
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
-  if (!checkRateLimit(`forgot-password:ip:${ip}`, 5, 15 * 60 * 1000)) {
+  if (!(await checkRateLimit(`forgot-password:ip:${ip}`, 5, 15 * 60 * 1000))) {
     return NextResponse.json(
       { error: "Хэт олон удаа оролдлоо. 15 минутын дараа дахин оролдоно уу." },
       { status: 429 }
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Имэйл хаягаа оруулна уу" }, { status: 400 });
   }
 
-  if (!checkRateLimit(`forgot-password:email:${email}`, 3, 15 * 60 * 1000)) {
+  if (!(await checkRateLimit(`forgot-password:email:${email}`, 3, 15 * 60 * 1000))) {
     return NextResponse.json({ message: GENERIC_MESSAGE });
   }
 

@@ -14,7 +14,7 @@ export default async function ProfilePage() {
     redirect("/login?callbackUrl=/profile");
   }
 
-  const [user] = await sql<User[]>`SELECT * FROM users WHERE id = ${Number(session.user.id)}`;
+  const [user] = await sql<User[]>`SELECT * FROM users WHERE id = ${session.user.id}`;
   if (!user) {
     redirect("/login");
   }

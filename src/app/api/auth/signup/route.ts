@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { sql } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { createEmailVerificationToken } from "@/lib/verification-token";
+import { sendVerificationEmail } from "@/lib/mailer";
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
-  if (!checkRateLimit(`signup:${ip}`, 5, 15 * 60 * 1000)) {
+  if (!(await checkRateLimit(`signup:${ip}`, 5, 15 * 60 * 1000))) {
     return NextResponse.json(
       { error: "Хэт олон удаа оролдлоо. 15 минутын дараа дахин оролдоно уу." },
       { status: 429 }
@@ -24,7 +26,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Нууц үг дор хаяж 8 тэмдэгт байх ёстой" }, { status: 400 });
   }
 
-  const [existing] = await sql<{ id: number; google_id: string | null }[]>`
+  const [existing] = await sql<{ id: string; google_id: string | null }[]>`
     SELECT id, google_id FROM users WHERE email = ${email}
   `;
   if (existing) {
@@ -35,10 +37,21 @@ export async function POST(request: NextRequest) {
   }
 
   const passwordHash = await hashPassword(password);
-  await sql`
+  const [inserted] = await sql<{ id: string }[]>`
     INSERT INTO users (email, name, password_hash)
     VALUES (${email}, ${name}, ${passwordHash})
+    RETURNING id
   `;
+
+  try {
+    const rawToken = await createEmailVerificationToken(inserted.id);
+    const verifyUrl = new URL(`/api/auth/verify-email?token=${rawToken}`, request.nextUrl.origin).toString();
+    await sendVerificationEmail(email, verifyUrl);
+  } catch (err) {
+    // Бүртгэл үүссэн хэвээр байна — баталгаажуулах имэйлийг дараа нь дахин
+    // (resend-verification) илгээж болно, тиймээс энд бүртгэлийг унагаахгүй
+    console.error("Баталгаажуулах имэйл илгээхэд алдаа гарлаа:", err);
+  }
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }

@@ -22,7 +22,7 @@ export async function PATCH(request: NextRequest) {
   }
   const phone = hasPhone ? body.phone.trim() || null : undefined;
 
-  const userId = Number(session.user.id);
+  const userId = session.user.id;
 
   if (name !== undefined && phone !== undefined) {
     await sql`UPDATE users SET name = ${name}, phone = ${phone} WHERE id = ${userId}`;
